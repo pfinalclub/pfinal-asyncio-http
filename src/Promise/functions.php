@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PFinal\AsyncioHttp\Promise;
 
-use function PFinal\Asyncio\{gather, create_task};
+use function PfinalClub\Asyncio\{gather, create_task};
 
 /**
  * Promise 工具函数

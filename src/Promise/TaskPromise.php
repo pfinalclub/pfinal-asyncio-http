@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PFinal\AsyncioHttp\Promise;
 
-use PFinal\Asyncio\Task;
-use function PFinal\Asyncio\{await, create_task};
+use PfinalClub\Asyncio\Task;
+use function PfinalClub\Asyncio\{await, create_task};
 
 /**
  * pfinal-asyncio Task 适配器

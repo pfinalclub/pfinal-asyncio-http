@@ -4,7 +4,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 
 use PFinal\AsyncioHttp\Client;
 use PFinal\AsyncioHttp\Pool;
-use function PFinal\Asyncio\run;
+use function PfinalClub\Asyncio\run;
 
 function main(): void
 {

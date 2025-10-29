@@ -6,7 +6,7 @@
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-use function PFinal\Asyncio\{run, create_task, gather, semaphore};
+use function PfinalClub\Asyncio\{run, create_task, gather, semaphore};
 use PFinal\AsyncioHttp\Client;
 use PFinal\AsyncioHttp\Pool;
 

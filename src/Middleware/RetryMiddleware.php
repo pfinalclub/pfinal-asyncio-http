@@ -8,7 +8,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use PFinal\AsyncioHttp\Exception\ConnectException;
 
-use function PFinal\Asyncio\sleep;
+use function PfinalClub\Asyncio\sleep;
 
 /**
  * 重试中间件

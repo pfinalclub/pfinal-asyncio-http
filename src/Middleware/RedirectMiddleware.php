@@ -77,6 +77,16 @@ class RedirectMiddleware
                     // 创建新请求
                     $newRequest = $this->modifyRequest($request, $response, $uri, $strict);
 
+                    // 检查是否跨域，如果是则移除敏感头
+                    $oldHost = $request->getUri()->getHost();
+                    $newHost = $uri->getHost();
+                    if ($oldHost !== $newHost) {
+                        // 跨域重定向，移除敏感头
+                        $newRequest = $newRequest
+                            ->withoutHeader('Authorization')
+                            ->withoutHeader('Cookie');
+                    }
+
                     // 添加 Referer 头
                     if ($referer) {
                         $refererUri = (string)$request->getUri()->withUserInfo('');
@@ -95,8 +105,8 @@ class RedirectMiddleware
                         ];
                     }
 
-                    // 递归调用处理器
-                    return $this($handler)($newRequest, $newOptions)->wait();
+                    // 递归调用处理器（返回响应而不是 wait）
+                    return $handler($newRequest, $newOptions);
                 }
             );
         };

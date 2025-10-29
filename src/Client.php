@@ -15,7 +15,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 
-use function PFinal\Asyncio\create_task;
+use function PfinalClub\Asyncio\create_task;
 
 /**
  * Guzzle 兼容的 HTTP 客户端
@@ -31,9 +31,14 @@ class Client implements ClientInterface
         $this->config = $config;
         $this->httpFactory = new HttpFactory();
 
-        // 创建处理器栈
-        $handler = new AsyncioHandler($config);
-        $this->handlerStack = HandlerStack::create($handler);
+        // 如果配置中提供了 handler，直接使用
+        if (isset($config['handler']) && $config['handler'] instanceof HandlerStack) {
+            $this->handlerStack = $config['handler'];
+        } else {
+            // 否则创建默认处理器栈
+            $handler = new AsyncioHandler($config);
+            $this->handlerStack = HandlerStack::create($handler);
+        }
     }
 
     public function request(string $method, $uri = '', array $options = []): ResponseInterface

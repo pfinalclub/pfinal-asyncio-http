@@ -7,7 +7,7 @@ namespace PFinal\AsyncioHttp;
 use PFinal\AsyncioHttp\Promise\PromiseInterface;
 use PFinal\AsyncioHttp\Promise\TaskPromise;
 
-use function PFinal\Asyncio\{create_task, gather, semaphore};
+use function PfinalClub\Asyncio\{create_task, gather, semaphore};
 
 /**
  * 并发请求池

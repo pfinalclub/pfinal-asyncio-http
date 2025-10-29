@@ -6,7 +6,7 @@
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-use function PFinal\Asyncio\run;
+use function PfinalClub\Asyncio\run;
 use PFinal\AsyncioHttp\Client;
 use PFinal\AsyncioHttp\Handler\HandlerStack;
 use Psr\Http\Message\RequestInterface;

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PFinal\AsyncioHttp\Handler;
 
 use Psr\Http\Message\RequestInterface;
-use PFinal\AsyncioHttp\Promise\PromiseInterface;
 
 /**
  * 处理器栈
@@ -129,13 +128,15 @@ class HandlerStack
     }
 
     /**
-     * 处理请求（返回 Promise）
+     * 处理请求（返回响应）
      */
-    public function __invoke(RequestInterface $request, array $options = []): PromiseInterface
+    public function __invoke(RequestInterface $request, array $options = [])
     {
         // 构建处理器链（从底层处理器开始）
         $handler = function ($request, $options) {
-            return ($this->handler)($request, $options);
+            $response = $this->handler->handle($request, $options);
+            // 如果是同步响应，直接返回
+            return $response;
         };
 
         // 反向应用中间件（从栈顶到栈底）
