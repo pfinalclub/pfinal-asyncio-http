@@ -1,6 +1,7 @@
 {
     "name": "pfinal/asyncio-http",
     "description": "A Guzzle-compatible async HTTP client based on pfinal-asyncio with full PSR-7/PSR-18 support",
+    "version": "1.0.0",
     "type": "library",
     "keywords": ["http", "client", "guzzle", "async", "asyncio", "psr-7", "psr-18", "fiber"],
     "license": "MIT",

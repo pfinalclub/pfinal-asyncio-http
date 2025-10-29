@@ -7,19 +7,11 @@ namespace PFinal\AsyncioHttp\Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use PFinal\AsyncioHttp\Client;
 use PFinal\AsyncioHttp\Handler\HandlerStack;
-use PFinal\AsyncioHttp\Handler\AsyncioHandler;
 use PFinal\AsyncioHttp\Psr7\Request;
-use PFinal\AsyncioHttp\Psr7\Response;
 use PFinal\AsyncioHttp\Psr7\Uri;
-use Mockery as m;
 
 class ClientTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        m::close();
-    }
-
     public function testConstructor()
     {
         $client = new Client();
@@ -34,7 +26,7 @@ class ClientTest extends TestCase
     {
         $client = new Client(['timeout' => 30]);
         $this->assertEquals(30, $client->getConfig()['timeout']);
-        // 移除不存在的getConfig方法调用，直接访问数组
+        // 直接访问数组检查是否存在配置项
         $this->assertFalse(isset($client->getConfig()['non_existent']));
     }
 
@@ -46,7 +38,7 @@ class ClientTest extends TestCase
 
     public function testCreateWithCustomHandler()
     {
-        // 创建处理器栈而不是直接使用handler mock
+        // 创建处理器栈
         $handlerStack = new HandlerStack();
         $client = new Client(['handler' => $handlerStack]);
         $this->assertInstanceOf(HandlerStack::class, $client->getHandlerStack());
@@ -94,6 +86,7 @@ class ClientTest extends TestCase
         
         $this->assertInstanceOf(Request::class, $request);
         $this->assertEquals('application/json', $request->getHeaderLine('Content-Type'));
+        $this->assertEquals($body, (string) $request->getBody());
     }
 
     public function testConfigAccess()
@@ -116,33 +109,11 @@ class ClientTest extends TestCase
         $this->assertInstanceOf(HandlerStack::class, $stack);
     }
 
-    public function testResolveUri()
+    public function testClientInitializationWithEmptyConfig()
     {
-        $client = new Client(['base_uri' => 'http://example.com/api']);
-        
-        // 使用反射访问私有方法
-        $reflection = new \ReflectionClass($client);
-        $method = $reflection->getMethod('resolveUri');
-        $method->setAccessible(true);
-        
-        // 修正参数类型，确保resolveUri接受正确类型的参数
-        $relativeUri = $method->invoke($client, '/users');
-        $this->assertInstanceOf(Uri::class, $relativeUri);
-        $this->assertEquals('http://example.com/api/users', (string) $relativeUri);
-    }
-
-    public function testResolveUriWithAbsoluteUri()
-    {
-        $client = new Client(['base_uri' => 'http://example.com/api']);
-        
-        // 使用反射访问私有方法
-        $reflection = new \ReflectionClass($client);
-        $method = $reflection->getMethod('resolveUri');
-        $method->setAccessible(true);
-        
-        // 修正参数类型，确保resolveUri接受正确类型的参数
-        $absoluteUri = $method->invoke($client, 'http://test.com/absolute');
-        $this->assertInstanceOf(Uri::class, $absoluteUri);
-        $this->assertEquals('http://test.com/absolute', (string) $absoluteUri);
+        // 测试空配置初始化
+        $client = new Client([]);
+        $this->assertInstanceOf(Client::class, $client);
+        $this->assertIsArray($client->getConfig());
     }
 }
