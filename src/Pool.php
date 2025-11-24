@@ -48,37 +48,42 @@ class Pool
         $fulfilled = $this->config['fulfilled'];
         $rejected = $this->config['rejected'];
 
+        // 使用 pfinalclub/asyncio v2.1 的 semaphore 进行并发控制
         $sem = $concurrency > 0 ? semaphore($concurrency) : null;
         $tasks = [];
-        $results = [];
         $index = 0;
 
         foreach ($this->requests as $key => $promise) {
             $currentIndex = $index++;
             $currentKey = is_int($key) ? $currentIndex : $key;
 
-            if ($sem) {
-                $sem->acquire();
-            }
-
             $task = create_task(function () use ($promise, $currentKey, $fulfilled, $rejected, $sem) {
+                // 获取信号量（如果并发已满则等待）
+                if ($sem) {
+                    $sem->acquire();
+                }
+                
                 try {
+                    // 执行请求
                     $response = $promise instanceof PromiseInterface
                         ? $promise->wait()
                         : $promise;
 
+                    // 调用成功回调
                     if ($fulfilled) {
                         $fulfilled($response, $currentKey);
                     }
 
                     return ['key' => $currentKey, 'value' => $response, 'state' => 'fulfilled'];
                 } catch (\Throwable $e) {
+                    // 调用失败回调
                     if ($rejected) {
                         $rejected($e, $currentKey);
                     }
 
                     return ['key' => $currentKey, 'reason' => $e, 'state' => 'rejected'];
                 } finally {
+                    // 释放信号量
                     if ($sem) {
                         $sem->release();
                     }
@@ -92,6 +97,7 @@ class Pool
             return [];
         }
 
+        // 并发执行所有任务
         $results = gather(...$tasks);
 
         return $results;
