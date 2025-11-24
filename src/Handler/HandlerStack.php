@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace PFinal\AsyncioHttp\Handler;
 
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * 处理器栈
- * 管理中间件链
+ * 管理中间件链（洋葱模型）
+ * 
+ * 在 Fiber 中，所有操作都是非阻塞的
+ * 中间件直接处理 Request/Response，无需 Promise
  */
 class HandlerStack
 {
@@ -129,15 +133,14 @@ class HandlerStack
 
     /**
      * 处理请求（返回响应）
+     * 
+     * 在 Fiber 中，这是非阻塞的
+     * 中间件链直接返回 ResponseInterface
      */
-    public function __invoke(RequestInterface $request, array $options = [])
+    public function __invoke(RequestInterface $request, array $options = []): ResponseInterface
     {
         // 构建处理器链（从底层处理器开始）
-        $handler = function ($request, $options) {
-            $response = $this->handler->handle($request, $options);
-            // 如果是同步响应，直接返回
-            return $response;
-        };
+        $handler = fn(RequestInterface $req, array $opts) => $this->handler->handle($req, $opts);
 
         // 反向应用中间件（从栈顶到栈底）
         foreach (array_reverse($this->middlewares) as $middleware) {
@@ -164,4 +167,3 @@ class HandlerStack
         return implode("\n", $lines);
     }
 }
-

@@ -1,52 +1,46 @@
 <?php
 
-/**
- * 请求池示例 - 批量请求
- */
-
-require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use PFinal\AsyncioHttp\Client;
 use PFinal\AsyncioHttp\Pool;
 use function PfinalClub\Asyncio\run;
 
-function main(): void
-{
-    $client = new Client();
+/**
+ * Pool 并发池示例
+ * 
+ * 展示如何使用 Pool 批量处理大量请求，并控制并发数
+ */
 
-    echo "=== 使用 Pool 批量请求 ===\n";
+echo "=== Pool 并发池示例 ===\n\n";
+
+run(function() {
+    $client = new Client(['timeout' => 10]);
+
+    echo "使用 Pool 发送 20 个请求，最多 5 个并发...\n";
     $startTime = microtime(true);
 
-    // 生成 20 个请求
-    $requests = function () use ($client) {
-        for ($i = 1; $i <= 20; $i++) {
-            yield $client->getAsync("https://httpbin.org/delay/1?id=$i");
-        }
-    };
+    // 创建请求列表
+    $requests = [];
+    for ($i = 1; $i <= 20; $i++) {
+        $requests[] = fn() => $client->get("https://httpbin.org/get?id={$i}");
+    }
 
-    // 创建请求池，并发限制为 5
-    $pool = new Pool($client, $requests(), [
+    // 使用 Pool 批量执行，限制并发数为 5
+    $results = Pool::batch($client, $requests, [
         'concurrency' => 5,
-        'fulfilled' => function ($response, $index) {
-            echo "✓ Request $index completed (status: {$response->getStatusCode()})\n";
+        'fulfilled' => function($response, $index) {
+            echo "✅ 请求 {$index} 成功: 状态码 {$response->getStatusCode()}\n";
         },
-        'rejected' => function ($reason, $index) {
-            echo "✗ Request $index failed: {$reason->getMessage()}\n";
+        'rejected' => function($e, $index) {
+            echo "❌ 请求 {$index} 失败: {$e->getMessage()}\n";
         },
     ]);
 
-    // 执行所有请求
-    $results = $pool->promise()->wait();
+    $elapsed = microtime(true) - $startTime;
 
-    $endTime = microtime(true);
-    $duration = round($endTime - $startTime, 2);
-
-    echo "\n统计:\n";
-    echo "  总请求数: 20\n";
-    echo "  并发限制: 5\n";
-    echo "  总耗时: {$duration} 秒\n";
-    echo "  理论耗时: " . ceil(20 / 5) . " 秒（20个请求 / 5并发）\n";
-}
-
-run(main(...));
-
+    echo "\n总耗时: " . number_format($elapsed, 2) . " 秒\n";
+    echo "成功: " . count(array_filter($results, fn($r) => $r['state'] === 'fulfilled')) . " 个\n";
+    echo "失败: " . count(array_filter($results, fn($r) => $r['state'] === 'rejected')) . " 个\n";
+    echo "\n✅ Pool 请求完成!\n";
+});

@@ -33,6 +33,7 @@ class AsyncioHandler implements HandlerInterface
         ], $config);
         
         // 初始化 pfinalclub/asyncio 的 AsyncHttpClient
+        // 注意：AsyncHttpClient 不直接支持 verify 选项，需要通过其他方式处理 SSL
         $this->client = new AsyncHttpClient([
             'timeout' => $this->config['timeout'],
             'follow_redirects' => $this->config['follow_redirects'],
@@ -50,7 +51,7 @@ class AsyncioHandler implements HandlerInterface
             $method = $request->getMethod();
             
             // 转换头部为简单数组格式
-        $headers = [];
+            $headers = [];
             foreach ($request->getHeaders() as $name => $values) {
                 $headers[$name] = implode(', ', $values);
             }
@@ -65,9 +66,9 @@ class AsyncioHandler implements HandlerInterface
             return $this->convertToPsr7Response($asyncioResponse);
             
         } catch (\RuntimeException $e) {
-        // 连接错误
+            // 连接错误
             throw new ConnectException(
-                $e->getMessage(),
+                sprintf('Connection to %s failed: %s', $url, $e->getMessage()),
                 $request,
                 null,
                 $e

@@ -22,13 +22,9 @@ class MapResponseMiddleware
     public function __invoke(callable $handler): callable
     {
         return function ($request, array $options) use ($handler) {
-            $promise = $handler($request, $options);
-
-            return $promise->then(function (ResponseInterface $response) {
-                $fn = $this->fn;
-                return $fn($response);
-            });
+            $response = $handler($request, $options);
+            $fn = $this->fn;
+            return $fn($response);
         };
     }
 }
-

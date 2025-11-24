@@ -52,8 +52,8 @@ class RedirectMiddleware
                 $response = $handler($currentRequest, $options);
 
                 // 检查是否是重定向
-                $statusCode = $response->getStatusCode();
-                if (!$this->isRedirect($statusCode)) {
+                    $statusCode = $response->getStatusCode();
+                    if (!$this->isRedirect($statusCode)) {
                     // 如果追踪重定向，添加历史记录
                     if ($trackRedirects && !empty($redirectHistory)) {
                         $response = $response->withHeader('X-Guzzle-Redirect-History', $redirectHistory);
@@ -61,13 +61,13 @@ class RedirectMiddleware
                             array_map(fn($h) => $h['status'], $redirectHistory));
                     }
                     return $response;
-                }
+                    }
 
-                // 获取 Location 头
-                $location = $response->getHeaderLine('Location');
+                    // 获取 Location 头
+                    $location = $response->getHeaderLine('Location');
                 if (!$location) {
-                    return $response;
-                }
+                        return $response;
+                    }
 
                 // 解析目标 URI
                 $targetUri = $this->resolveUri($currentRequest->getUri(), $location);
@@ -80,10 +80,10 @@ class RedirectMiddleware
                 }
 
                 // 记录重定向历史
-                if ($trackRedirects) {
+                    if ($trackRedirects) {
                     $redirectHistory[] = [
                         'url' => (string)$currentRequest->getUri(),
-                        'status' => $statusCode,
+                            'status' => $statusCode,
                     ];
                 }
 
@@ -151,65 +151,49 @@ class RedirectMiddleware
                 ->withPort($port);
         }
 
+        // 解析路径
         $path = $rel->getPath();
         
-        // 如果路径以 / 开头，使用绝对路径
-        if ($path !== '' && $path[0] === '/') {
+        // 绝对路径
+        if (!empty($path) && $path[0] === '/') {
             return $rel
                 ->withScheme($scheme)
                 ->withHost($host)
                 ->withPort($port);
         }
 
-        // 处理相对路径
+        // 相对路径
         $basePath = $base->getPath();
-        if ($path === '') {
-            $path = $basePath;
-        } else {
-            // 移除最后一个路径段
-            $basePath = substr($basePath, 0, (int)strrpos($basePath, '/') + 1);
-            $path = $basePath . $path;
-        }
-
-        // 规范化路径
-        $path = $this->normalizePath($path);
+        $targetPath = $this->mergePaths($basePath, $path);
 
         return $rel
             ->withScheme($scheme)
             ->withHost($host)
             ->withPort($port)
-            ->withPath($path)
+            ->withPath($targetPath)
             ->withQuery($rel->getQuery() ?: $base->getQuery());
     }
 
     /**
-     * 规范化路径（移除 ./ 和 ../）
+     * 合并路径
      */
-    private function normalizePath(string $path): string
+    private function mergePaths(string $basePath, string $relPath): string
     {
-        $parts = explode('/', $path);
-        $result = [];
-
-        foreach ($parts as $part) {
-            if ($part === '..') {
-                array_pop($result);
-            } elseif ($part !== '.' && $part !== '') {
-                $result[] = $part;
-            }
+        if ($relPath === '') {
+            return $basePath;
         }
 
-        $normalized = implode('/', $result);
+        $baseDir = preg_replace('/\/[^\/]*$/', '', $basePath);
         
-        // 保持开头的斜杠
-        if ($path[0] === '/') {
-            $normalized = '/' . $normalized;
+        if ($baseDir === '') {
+            return '/' . ltrim($relPath, '/');
         }
 
-        return $normalized;
+        return $baseDir . '/' . ltrim($relPath, '/');
     }
 
     /**
-     * 根据重定向状态码修改请求
+     * 修改请求以进行重定向
      */
     private function modifyRequest(
         RequestInterface $request,
@@ -218,38 +202,26 @@ class RedirectMiddleware
         bool $strict,
         bool $referer
     ): RequestInterface {
-        // 更新 URI
-        $request = $request->withUri($targetUri);
+        $newRequest = $request->withUri($targetUri);
 
         // 添加 Referer 头
-        if ($referer && !$request->hasHeader('Referer')) {
-            $refererUri = $request->getUri()
-                ->withUserInfo('')
-                ->withFragment('');
-            $request = $request->withHeader('Referer', (string)$refererUri);
+        if ($referer) {
+            $newRequest = $newRequest->withHeader('Referer', (string)$request->getUri());
         }
 
-        // 根据状态码调整请求方法
-        if ($statusCode === 303) {
-            // 303 总是改为 GET
-            $request = $request->withMethod('GET');
-            $request = $request->withBody(\PFinal\AsyncioHttp\Psr7\stream_for(''));
-        } elseif (!$strict && in_array($statusCode, [301, 302])) {
-            // 301/302 在非严格模式下，POST 改为 GET
-            if ($request->getMethod() === 'POST') {
-                $request = $request->withMethod('GET');
-                $request = $request->withBody(\PFinal\AsyncioHttp\Psr7\stream_for(''));
+        // 根据状态码修改请求方法和体
+        if ($statusCode === 303 || (!$strict && $statusCode === 302)) {
+            // 303 和非严格模式的 302 应该变为 GET
+            $newRequest = $newRequest
+                ->withMethod('GET')
+                ->withBody(\PFinal\AsyncioHttp\Psr7\stream_for(''));
+        } elseif ($statusCode === 301 || $statusCode === 302) {
+            // 严格模式下，保持原方法
+            if ($request->getMethod() !== 'GET' && $request->getMethod() !== 'HEAD') {
+                $newRequest = $newRequest->withBody(\PFinal\AsyncioHttp\Psr7\stream_for(''));
             }
         }
-        // 307/308 保持原方法和请求体
 
-        // 移除 Content-Length 头（如果请求体为空）
-        if ($request->getBody()->getSize() === 0) {
-            $request = $request->withoutHeader('Content-Length');
-            $request = $request->withoutHeader('Transfer-Encoding');
-        }
-
-        return $request;
+        return $newRequest;
     }
 }
-

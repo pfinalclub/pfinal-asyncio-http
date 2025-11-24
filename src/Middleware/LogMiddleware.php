@@ -26,18 +26,14 @@ class LogMiddleware
     public function __invoke(callable $handler): callable
     {
         return function (RequestInterface $request, array $options) use ($handler) {
-            $promise = $handler($request, $options);
-
-            return $promise->then(
-                function (ResponseInterface $response) use ($request) {
-                    $this->logSuccess($request, $response);
-                    return $response;
-                },
-                function (\Exception $reason) use ($request) {
-                    $this->logFailure($request, $reason);
-                    throw $reason;
-                }
-            );
+            try {
+                $response = $handler($request, $options);
+                $this->logSuccess($request, $response);
+                return $response;
+            } catch (\Exception $e) {
+                $this->logFailure($request, $e);
+                throw $e;
+            }
         };
     }
 
@@ -83,4 +79,3 @@ class LogMiddleware
         );
     }
 }
-

@@ -23,31 +23,27 @@ class HistoryMiddleware
     public function __invoke(callable $handler): callable
     {
         return function (RequestInterface $request, array $options) use ($handler) {
-            $promise = $handler($request, $options);
+            try {
+                $response = $handler($request, $options);
+                
+                $this->container[] = [
+                    'request' => $request,
+                    'response' => $response,
+                    'error' => null,
+                    'options' => $options,
+                ];
 
-            return $promise->then(
-                function (ResponseInterface $response) use ($request, $options) {
-                    $this->container[] = [
-                        'request' => $request,
-                        'response' => $response,
-                        'error' => null,
-                        'options' => $options,
-                    ];
-
-                    return $response;
-                },
-                function (\Exception $reason) use ($request, $options) {
-                    $this->container[] = [
-                        'request' => $request,
-                        'response' => null,
-                        'error' => $reason,
-                        'options' => $options,
-                    ];
-
-                    throw $reason;
-                }
-            );
+                return $response;
+            } catch (\Exception $e) {
+                $this->container[] = [
+                    'request' => $request,
+                    'response' => null,
+                    'error' => $e,
+                    'options' => $options,
+                ];
+                
+                throw $e;
+            }
         };
     }
 }
-

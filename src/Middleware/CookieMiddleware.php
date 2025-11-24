@@ -38,8 +38,8 @@ class CookieMiddleware
                 // 从响应中提取 Cookie
                 $cookieJar->extractCookies($request, $response);
 
-                return $response;
-            }
+                    return $response;
+                }
 
             return $handler($request, $options);
         };

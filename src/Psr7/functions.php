@@ -291,3 +291,54 @@ if (!function_exists('PFinal\AsyncioHttp\Psr7\modify_request')) {
     }
 }
 
+if (!function_exists('PFinal\AsyncioHttp\Psr7\uri_for')) {
+    /**
+     * 创建 URI 对象
+     *
+     * @param string|UriInterface $uri
+     * @return UriInterface
+     */
+    function uri_for($uri): UriInterface
+    {
+        if ($uri instanceof UriInterface) {
+            return $uri;
+        }
+
+        if (is_string($uri)) {
+            return new Uri($uri);
+        }
+
+        throw new \InvalidArgumentException('URI must be a string or UriInterface');
+    }
+}
+
+if (!function_exists('PFinal\AsyncioHttp\Psr7\stream_for')) {
+    /**
+     * 创建 Stream 对象
+     *
+     * @param string|resource|StreamInterface $resource
+     * @return StreamInterface
+     */
+    function stream_for($resource = ''): StreamInterface
+    {
+        if ($resource instanceof StreamInterface) {
+            return $resource;
+        }
+
+        if (is_string($resource)) {
+            $stream = new Stream('php://temp', 'rw+');
+            if ($resource !== '') {
+                $stream->write($resource);
+                $stream->rewind();
+            }
+            return $stream;
+        }
+
+        if (is_resource($resource)) {
+            return new Stream($resource);
+        }
+
+        throw new \InvalidArgumentException('Invalid resource type');
+    }
+}
+

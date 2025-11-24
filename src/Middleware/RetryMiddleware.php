@@ -39,8 +39,7 @@ class RetryMiddleware
 
             while (true) {
                 try {
-                    $promise = $handler($request, $options);
-                    $response = $promise->wait();
+                    $response = $handler($request, $options);
 
                     // 检查是否需要基于响应重试
                     if ($decider && $attempt < $maxAttempts) {
@@ -128,9 +127,6 @@ class RetryMiddleware
 
     /**
      * 指数退避延迟函数
-     * 
-     * @param int $baseDelay 基础延迟（毫秒）
-     * @param int $maxDelay 最大延迟（毫秒）
      */
     public static function exponentialBackoff(int $baseDelay = 1000, int $maxDelay = 60000): callable
     {
@@ -142,8 +138,6 @@ class RetryMiddleware
 
     /**
      * 线性退避延迟函数
-     * 
-     * @param int $baseDelay 基础延迟（毫秒）
      */
     public static function linearBackoff(int $baseDelay = 1000): callable
     {
@@ -154,8 +148,6 @@ class RetryMiddleware
 
     /**
      * 固定延迟函数
-     * 
-     * @param int $delay 延迟（毫秒）
      */
     public static function constantBackoff(int $delay = 1000): callable
     {
@@ -166,8 +158,6 @@ class RetryMiddleware
 
     /**
      * 基于状态码的重试决策器
-     * 
-     * @param array $statusCodes 需要重试的状态码
      */
     public static function statusCodeDecider(array $statusCodes = [500, 502, 503, 504]): callable
     {
@@ -187,4 +177,3 @@ class RetryMiddleware
         };
     }
 }
-

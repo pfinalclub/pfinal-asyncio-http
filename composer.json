@@ -1,9 +1,9 @@
 {
     "name": "pfinal/asyncio-http-psr",
-    "description": "Guzzle-compatible async HTTP client with full PSR-7/18 support, powered by pfinalclub/asyncio",
+    "description": "Async HTTP client based on pfinalclub/asyncio with full PSR-7/18 support",
     "version": "1.0.0",
     "type": "library",
-    "keywords": ["async", "http", "client", "guzzle", "psr-7", "psr-18", "asyncio", "fiber", "workerman", "promise", "concurrent"],
+    "keywords": ["async", "http", "client", "psr-7", "psr-18", "asyncio", "fiber", "workerman", "concurrent"],
     "license": "MIT",
     "authors": [
         {
@@ -31,8 +31,7 @@
         },
         "files": [
             "src/functions.php",
-            "src/Psr7/functions.php",
-            "src/Promise/functions.php"
+            "src/Psr7/functions.php"
         ]
     },
     "autoload-dev": {
@@ -41,7 +40,7 @@
         }
     },
     "suggest": {
-        "ext-ev": "For better event loop performance (10x faster)",
+        "ext-ev": "For best event loop performance (10x faster)",
         "ext-event": "For better event loop performance (4x faster)"
     },
     "scripts": {
@@ -58,4 +57,3 @@
     "minimum-stability": "stable",
     "prefer-stable": true
 }
-

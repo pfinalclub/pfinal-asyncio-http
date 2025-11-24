@@ -8,7 +8,6 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use PFinal\AsyncioHttp\Exception\ClientException;
 use PFinal\AsyncioHttp\Exception\ServerException;
-use PFinal\AsyncioHttp\Promise\PromiseInterface;
 
 /**
  * HTTP 错误处理中间件
@@ -32,43 +31,38 @@ class HttpErrorsMiddleware
                 return $handler($request, $options);
             }
 
-            $promise = $handler($request, $options);
+            $response = $handler($request, $options);
+            $statusCode = $response->getStatusCode();
 
-            return $promise->then(
-                function (ResponseInterface $response) use ($request, $options) {
-                    $statusCode = $response->getStatusCode();
+            if ($statusCode >= 400 && $statusCode < 500) {
+                throw new ClientException(
+                    sprintf(
+                        'Client error: `%s %s` resulted in a `%s %s` response',
+                        $request->getMethod(),
+                        $request->getUri(),
+                        $response->getStatusCode(),
+                        $response->getReasonPhrase()
+                    ),
+                    $request,
+                    $response
+                );
+            }
 
-                    if ($statusCode >= 400 && $statusCode < 500) {
-                        throw new ClientException(
-                            sprintf(
-                                'Client error: `%s %s` resulted in a `%s %s` response',
-                                $request->getMethod(),
-                                $request->getUri(),
-                                $response->getStatusCode(),
-                                $response->getReasonPhrase()
-                            ),
-                            $request,
-                            $response
-                        );
-                    }
+            if ($statusCode >= 500) {
+                throw new ServerException(
+                    sprintf(
+                        'Server error: `%s %s` resulted in a `%s %s` response',
+                        $request->getMethod(),
+                        $request->getUri(),
+                        $response->getStatusCode(),
+                        $response->getReasonPhrase()
+                    ),
+                    $request,
+                    $response
+                );
+            }
 
-                    if ($statusCode >= 500) {
-                        throw new ServerException(
-                            sprintf(
-                                'Server error: `%s %s` resulted in a `%s %s` response',
-                                $request->getMethod(),
-                                $request->getUri(),
-                                $response->getStatusCode(),
-                                $response->getReasonPhrase()
-                            ),
-                            $request,
-                            $response
-                        );
-                    }
-
-                    return $response;
-                }
-            );
+            return $response;
         };
     }
 
@@ -83,4 +77,3 @@ class HttpErrorsMiddleware
         };
     }
 }
-
