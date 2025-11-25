@@ -1,12 +1,43 @@
+# Dependencies
 /vendor/
-/composer.lock
+
+# Composer
+composer.lock
+
+# PHPUnit
 /.phpunit.result.cache
+/.phpunit.cache/
 /phpunit.xml
-/.php-cs-fixer.cache
-/.phpstan.cache
 /coverage/
+
+# PHP CS Fixer
+/.php-cs-fixer.cache
+
+# PHPStan
+/.phpstan.cache
+/phpstan-baseline.neon
+
+# Psalm
+/psalm-baseline.xml
+
+# PHPBench
+/phpbench-baseline.xml
+
+# IDEs
 /.idea/
 /.vscode/
-*.log
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+/tmp/
+/.tmp/
 

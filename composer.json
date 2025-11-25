@@ -1,16 +1,37 @@
 {
-    "name": "pfinal/asyncio-http-psr",
-    "description": "Async HTTP client based on pfinalclub/asyncio with full PSR-7/18 support",
+    "name": "pfinalclub/asyncio-http-core",
+    "description": "🚀 Production-grade async HTTP client for pfinal-asyncio ecosystem | 生产级异步 HTTP 客户端",
     "version": "1.0.0",
     "type": "library",
-    "keywords": ["async", "http", "client", "psr-7", "psr-18", "asyncio", "fiber", "workerman", "concurrent"],
+    "keywords": [
+        "asyncio",
+        "async",
+        "http",
+        "client",
+        "fiber",
+        "coroutine",
+        "concurrent",
+        "psr-7",
+        "psr-18",
+        "workerman",
+        "high-performance",
+        "pfinal-asyncio",
+        "ecosystem"
+    ],
     "license": "MIT",
     "authors": [
         {
             "name": "PFinal",
-            "email": "pfinal@pfinal.cn"
+            "email": "pfinal@pfinal.cn",
+            "homepage": "https://github.com/pfinalclub"
         }
     ],
+    "homepage": "https://github.com/pfinalclub/asyncio-http-core",
+    "support": {
+        "issues": "https://github.com/pfinalclub/asyncio-http-core/issues",
+        "source": "https://github.com/pfinalclub/asyncio-http-core",
+        "docs": "https://github.com/pfinalclub/asyncio-http-core#readme"
+    },
     "require": {
         "php": ">=8.1",
         "pfinalclub/asyncio": "^2.1",
@@ -20,10 +41,12 @@
         "psr/log": "^1.0|^2.0|^3.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.0",
+        "phpunit/phpunit": "^10.0|^11.0",
         "phpstan/phpstan": "^1.10",
         "friendsofphp/php-cs-fixer": "^3.0",
-        "mockery/mockery": "^1.5"
+        "mockery/mockery": "^1.5",
+        "phpbench/phpbench": "^1.2",
+        "vimeo/psalm": "^5.0"
     },
     "autoload": {
         "psr-4": {
@@ -36,23 +59,79 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "PFinal\\AsyncioHttp\\Tests\\": "tests/"
+            "PFinal\\AsyncioHttp\\Tests\\": "tests/",
+            "PFinal\\AsyncioHttp\\Benchmark\\": "benchmarks/"
         }
     },
     "suggest": {
-        "ext-ev": "For best event loop performance (10x faster)",
-        "ext-event": "For better event loop performance (4x faster)"
+        "ext-ev": "🚀 For best event loop performance (10-20x faster) - Highly recommended for production",
+        "ext-event": "⚡ For better event loop performance (3-5x faster) - Good for production",
+        "ext-curl": "For advanced HTTP features and better compatibility",
+        "ext-mbstring": "For better character encoding support",
+        "ext-json": "For JSON request/response handling",
+        "psr/cache-implementation": "For HTTP response caching",
+        "monolog/monolog": "For advanced logging capabilities"
     },
     "scripts": {
-        "test": "phpunit",
-        "test-coverage": "phpunit --coverage-html coverage",
-        "phpstan": "phpstan analyse src --level=8",
-        "cs-fix": "php-cs-fixer fix",
-        "cs-check": "php-cs-fixer fix --dry-run --diff"
+        "test": "phpunit --colors=always",
+        "test:unit": "phpunit --testsuite Unit --colors=always",
+        "test:integration": "phpunit --testsuite Integration --colors=always",
+        "test:coverage": "XDEBUG_MODE=coverage phpunit --coverage-html coverage --coverage-text",
+        "test:coverage-clover": "XDEBUG_MODE=coverage phpunit --coverage-clover coverage.xml",
+        "phpstan": "phpstan analyse src tests --level=max --memory-limit=512M",
+        "psalm": "psalm --show-info=true",
+        "cs-fix": "php-cs-fixer fix --config=.php-cs-fixer.php --verbose",
+        "cs-check": "php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff --verbose",
+        "benchmark": "phpbench run benchmarks --report=default",
+        "analyse": [
+            "@phpstan",
+            "@psalm"
+        ],
+        "qa": [
+            "@cs-check",
+            "@analyse",
+            "@test"
+        ],
+        "examples": "php examples/01_basic_request.php",
+        "docs:serve": "echo 'Documentation server would start here'",
+        "pre-commit": [
+            "@cs-fix",
+            "@analyse"
+        ]
+    },
+    "scripts-descriptions": {
+        "test": "运行所有测试",
+        "test:unit": "运行单元测试",
+        "test:integration": "运行集成测试",
+        "test:coverage": "生成测试覆盖率报告",
+        "phpstan": "运行 PHPStan 静态分析",
+        "psalm": "运行 Psalm 静态分析",
+        "cs-fix": "自动修复代码风格问题",
+        "cs-check": "检查代码风格",
+        "benchmark": "运行性能基准测试",
+        "analyse": "运行所有静态分析",
+        "qa": "运行完整质量保证流程"
     },
     "config": {
         "sort-packages": true,
-        "optimize-autoloader": true
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "platform": {
+            "php": "8.1"
+        },
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        },
+        "ecosystem": {
+            "parent": "pfinalclub/asyncio",
+            "category": "http-client",
+            "stability": "stable"
+        }
     },
     "minimum-stability": "stable",
     "prefer-stable": true
